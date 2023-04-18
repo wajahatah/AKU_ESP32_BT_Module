@@ -127,10 +127,6 @@ void setup(){
     return;
    }
   createDir(LITTLEFS, "/mydir");
-  }
-
-void loop(){
-  unsigned long currentMillis = millis();
   float temperature = dht.readTemperature();
   float humidity = dht.readHumidity();
   char temp[5];
@@ -144,12 +140,15 @@ void loop(){
   appendFile(LITTLEFS, "/mydir/sensordata.txt", ",");
   appendFile(LITTLEFS, "/mydir/sensordata.txt", h);
   appendFile(LITTLEFS, "/mydir/sensordata.txt","\n");
-//  delay(10000);
+ }
+
+void loop(){
+  unsigned long currentMillis = millis();
+  
   Serial.println("Going for connection");  
   
   if(!SerialBT.connected()){
     Serial.print("Device not available");
-    delay(20000);
   }
   else {
   Serial.println("Device found");
@@ -166,13 +165,18 @@ void loop(){
     String fileContents = readFileAsString(LITTLEFS, "/mydir/sensordata.txt");
     input == '0';
     Serial.println( "File send" ); 
-    delay(15000);
     }
   
    if (input == 'd'){
       deleteFile(LITTLEFS, "/mydir/sensordata.txt");
     input == '0';
-    delay(15000);
+    digitalWrite(DHTPWR, LOW);
+    SerialBT.disconnect();
+    Serial.println("Now sleeping");
+    esp_sleep_enable_timer_wakeup(WAKEUP_INTERVAL * 1000000);
+    esp_sleep_pd_config(ESP_PD_DOMAIN_RTC_PERIPH, ESP_PD_OPTION_AUTO);
+    esp_sleep_pd_config(ESP_PD_DOMAIN_RTC_SLOW_MEM, ESP_PD_OPTION_ON);
+    esp_deep_sleep_start();
     }
       
    if (input == 's'){
@@ -183,8 +187,6 @@ void loop(){
     esp_sleep_pd_config(ESP_PD_DOMAIN_RTC_PERIPH, ESP_PD_OPTION_AUTO);
     esp_sleep_pd_config(ESP_PD_DOMAIN_RTC_SLOW_MEM, ESP_PD_OPTION_ON);
     esp_deep_sleep_start();
-    }
-   else { delay(15000); 
    }
   } 
  }
